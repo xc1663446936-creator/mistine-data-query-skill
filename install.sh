@@ -23,7 +23,7 @@ if [ "$mode" = "workbuddy" ]; then
 fi
 echo "Installed: $target"
 if [ "$mode" = "workbuddy" ]; then
-  echo "Automatic updates: enabled (checked at most once every 24 hours when used)"
+  echo "Automatic updates: enabled (checked before every use)"
 fi
 echo "Existing API configuration: preserved"
 echo "If this is the first install, ask WorkBuddy to configure the API address and personal key."

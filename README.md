@@ -41,7 +41,7 @@ python3 ~/.workbuddy/skills/mistine-data-query/scripts/mistine_data_query.py set
 python3 ~/.workbuddy/skills/mistine-data-query/scripts/mistine_data_query.py update
 ```
 
-WorkBuddy 安装时已经默认开启自动更新。每次查询前会判断距离上次检查是否超过 24 小时；超过才从公开 GitHub 拉取更新，失败时继续保留并使用旧版本。无需另装定时器，也无需 GitHub 登录。
+WorkBuddy 安装时已经默认开启自动更新。每次查询或状态检查前都会从公开 GitHub 检查更新，失败时继续保留并使用旧版本。无需另装定时器，也无需 GitHub 登录。
 
 如需关闭：
 

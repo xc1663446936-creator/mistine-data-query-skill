@@ -17,7 +17,7 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 CONFIG = Path.home() / ".config/mistine-data-query/config.json"
 
 
@@ -120,8 +120,6 @@ def run_update(force: bool = False) -> dict:
     repo = Path(cfg.get("repo_dir", "")).expanduser()
     if not repo or not (repo / ".git").exists() or not (repo / "install.sh").exists():
         raise RuntimeError("未记录可更新的 Git 仓库。请从 GitHub clone 后运行仓库内 install.sh。")
-    if not force and time.time() - float(cfg.get("last_update_check", 0)) < 86400:
-        return {"ok": True, "skipped": True, "reason": "checked_within_24h"}
     pull = subprocess.run(["git", "-C", str(repo), "pull", "--ff-only"], text=True, capture_output=True, timeout=120)
     save_config(last_update_check=int(time.time()))
     if pull.returncode:

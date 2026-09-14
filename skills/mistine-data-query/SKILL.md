@@ -51,4 +51,4 @@ python3 scripts/mistine_data_query.py mapping --adq-video-id 123456789
 
 ## 更新
 
-`status` 会比较本地与服务端推荐版本。运行 `update` 可从安装时记录的公开 Git 仓库执行 `git pull --ff-only` 后重装。WorkBuddy 安装默认启用 `auto-update on`：查询时每天最多检查一次，不需要独立后台任务。更新失败时保留旧版本并报告原因。
+`status` 会比较本地与服务端推荐版本。运行 `update` 可从安装时记录的公开 Git 仓库执行 `git pull --ff-only` 后重装。WorkBuddy 安装默认启用 `auto-update on`：每次查询或状态检查前都检查更新，不需要独立后台任务。更新失败时保留旧版本并报告原因。
