@@ -42,6 +42,8 @@ python3 ~/.workbuddy/skills/mistine-data-query/scripts/mistine_data_query.py upd
 
 WorkBuddy 安装时已经默认开启自动更新。每次查询或状态检查前都会从公开 GitHub 检查更新，失败时继续保留并使用旧版本。无需另装定时器，也无需 GitHub 登录。
 
+查询结果中的金额统一为人民币元：微信豆源数据本身为元，ADQ 源数据虽以分存储，但客户端会自动换算成元，并在响应的 `units` 中明确标注。`--min-cost` 在两个平台也统一按元填写。
+
 如需关闭：
 
 ```bash

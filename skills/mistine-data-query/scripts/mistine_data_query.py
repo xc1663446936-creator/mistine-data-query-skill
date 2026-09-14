@@ -18,10 +18,14 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1.7"
+VERSION = "0.1.8"
 DEFAULT_API_URL = "https://115.159.197.237"
 CONFIG = Path.home() / ".config/mistine-data-query/config.json"
 CA_BUNDLE = Path(__file__).resolve().parent.parent / "certs/mistine-api-ca.pem"
+ADQ_MONEY_FIELDS = {
+    "cost", "order_amount", "order_24h_amount", "first_day_order_amount",
+    "order_net_amount", "order_coupon_amount",
+}
 
 
 def load_stored_config() -> dict:
@@ -90,7 +94,7 @@ def dates(args) -> list[tuple[str, str]]:
     return [("start", dt.date.fromisoformat(args.start).isoformat()), ("end", dt.date.fromisoformat(args.end).isoformat())]
 
 
-def common_params(args) -> list[tuple[str, str]]:
+def common_params(args, command: str = "") -> list[tuple[str, str]]:
     out = dates(args)
     for name in ("account", "room", "creator", "material_id", "adq_video_id", "cloud_video_id", "uploader", "title", "group", "type", "uploaded_start", "uploaded_end"):
         value = getattr(args, name, None)
@@ -99,10 +103,34 @@ def common_params(args) -> list[tuple[str, str]]:
     for name in ("min_cost", "min_roi", "sort", "limit"):
         value = getattr(args, name, None)
         if value is not None:
+            if name == "min_cost" and command.startswith("adq-"):
+                value = round(value * 100)
             out.append((name.replace("_", "-"), str(value)))
     if getattr(args, "not_deleted", False):
         out.append(("not-deleted", "1"))
     return out
+
+
+def normalize_result(command: str, result: dict) -> dict:
+    """Normalize CLI output to business units; the ADQ source stores money in fen."""
+    if command.startswith("adq-") and result.get("ok"):
+        for row in result.get("rows", []):
+            for field in ADQ_MONEY_FIELDS:
+                if row.get(field) is not None:
+                    row[field] = round(row[field] / 100, 2)
+        result["units"] = {
+            "money": "CNY yuan",
+            "rates": "decimal ratio; multiply by 100 only when formatting as percent",
+            "roi": "dimensionless ratio",
+            "normalization": "ADQ source fen converted to yuan by client",
+        }
+    elif command == "weixin-materials" and result.get("ok"):
+        result["units"] = {
+            "money": "CNY yuan",
+            "rates": "decimal ratio; multiply by 100 only when formatting as percent",
+            "roi": "dimensionless ratio",
+        }
+    return result
 
 
 def add_dates(p):
@@ -190,7 +218,8 @@ def main() -> int:
             "adq-adgroups": "/v1/adq/adgroups", "adq-videos": "/v1/adq/videos",
             "cloud-videos": "/v1/cloud/videos", "mapping": "/v1/mapping",
         }
-        result = request(paths[args.command], common_params(args))
+        result = request(paths[args.command], common_params(args, args.command))
+        result = normalize_result(args.command, result)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 

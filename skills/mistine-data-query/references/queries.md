@@ -1,5 +1,20 @@
 # 查询口径
 
+## 单位（强制）
+
+| 数据/字段 | 源数据库单位 | CLI 输出及报告单位 |
+| --- | --- | --- |
+| 微信豆 `cost`、`direct_gmv`、`net_gmv` | 元 | 元 |
+| ADQ `cost`、`order_amount`、`order_24h_amount`、`first_day_order_amount`、`order_net_amount`、`order_coupon_amount` | 分 | 元；CLI 已自动除以 100 |
+| 云视频 `sum_stat_cost`、`sum_pay_order_amount` | 元 | 元 |
+| ROI | 倍数 | 倍数，不加 `%` |
+| CTR、CVR、完播率等 rate 字段 | 0–1 小数 | 展示百分比时乘以 100 |
+| 曝光、播放、点击、转化、订单数 | 次/人/单 | 原计数，不换算 |
+
+ADQ 查询的 `--min-cost` 也按元填写，CLI 会在请求前转换为源数据库需要的分。CLI 响应会附带 `units`；以它为准，禁止对已归一化的 ADQ 金额再次除以 100。跨平台金额合计前必须确认两边均为元。
+
+校验示例：ADQ 原始 `cost=24219` 分，CLI 应输出 `cost=242.19` 元；若报告仍显示 `24219元`，必须停止交付并修正。ROI 应从统一单位后的汇总金额重算，不能平均明细 ROI。CVR 等比率不得先取整；净订单数 1、商品点击数 1 时净 CVR 为 100%。Excel/WPS 合计公式必须为 `=SUM(...)`，不能是 `==SUM(...)`。
+
 ## 微信豆
 
 `weixin-materials` 按公开素材编号汇总所选日期的数据，支持直播间、投放创建人（`--creator`）、云视频上传人/视频作者（`--uploader`）、素材编号、订单类型、最低消耗和最低净 ROI。返回消耗、播放、完播、进房、商品曝光与点击、直接/7日归因/净成交、GMV、ROI、CVR 和 CPA。`--uploader` 直接读取 `dim_material` 中后台物化的云视频字段，不把投放创建人当成视频作者。
