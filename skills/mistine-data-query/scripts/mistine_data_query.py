@@ -8,6 +8,7 @@ import getpass
 import json
 import os
 from pathlib import Path
+import ssl
 import subprocess
 import sys
 import time
@@ -17,9 +18,10 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1.4"
-DEFAULT_API_URL = "https://mistine-data-api.sucaicloud.com"
+VERSION = "0.1.5"
+DEFAULT_API_URL = "https://115.159.197.237"
 CONFIG = Path.home() / ".config/mistine-data-query/config.json"
+CA_BUNDLE = Path(__file__).resolve().parent.parent / "certs/mistine-api-ca.pem"
 
 
 def load_stored_config() -> dict:
@@ -63,7 +65,10 @@ def request(path: str, params: list[tuple[str, str]] | None = None):
         "User-Agent": f"mistine-data-query/{VERSION}",
     })
     try:
-        with urllib.request.urlopen(req, timeout=90) as response:
+        context = ssl.create_default_context()
+        if CA_BUNDLE.exists():
+            context.load_verify_locations(cafile=str(CA_BUNDLE))
+        with urllib.request.urlopen(req, timeout=90, context=context) as response:
             return json.loads(response.read())
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", "replace")

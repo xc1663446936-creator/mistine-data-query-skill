@@ -14,7 +14,7 @@ curl -fsSL https://raw.githubusercontent.com/xc1663446936-creator/mistine-data-q
 
 > 配置 MISTINE 数据查询。
 
-WorkBuddy 会使用固定 HTTPS 入口 `https://mistine-data-api.sucaicloud.com` 调用 Skill 的 `setup`，并通过隐藏输入读取个人 API Key。密钥不会出现在聊天、命令历史或 Git 仓库中。
+WorkBuddy 会使用固定 HTTPS 入口 `https://115.159.197.237` 调用 Skill 的 `setup`，并通过 Skill 内置 CA 证书校验 HTTPS，再通过隐藏输入读取个人 API Key。密钥不会出现在聊天、命令历史或 Git 仓库中。
 
 ## Codex 安装
 
