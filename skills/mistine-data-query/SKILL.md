@@ -1,6 +1,6 @@
 ---
 name: mistine-data-query
-description: 通过公司只读 API 查询 MISTINE 微信豆、ADQ 和云视频管家数据，支持按日期、直播间、账户、计划、素材、上传人及映射关系筛选、排行和导出；不用于执行任意 SQL、抓取网页或修改生产数据。
+description: 通过公司只读 API 查询 MISTINE 微信豆、ADQ 和云视频管家数据，支持按日期、直播间、账户、计划、计划素材关系、素材、上传人及映射关系筛选、排行和导出；不用于执行任意 SQL、抓取网页或修改生产数据。
 ---
 
 # MISTINE 统一数据查询
@@ -27,6 +27,8 @@ curl -fsSL https://raw.githubusercontent.com/xc1663446936-creator/mistine-data-q
 ```bash
 python3 scripts/mistine_data_query.py weixin-materials --date yesterday --room 小粉帽 --min-cost 500 --sort cost
 python3 scripts/mistine_data_query.py weixin-materials --start 2026-09-01 --end 2026-09-07 --uploader 申丹丹 --sort cost
+python3 scripts/mistine_data_query.py weixin-plan-materials --date yesterday --plan-id 1_5241694310_130 --sort cost
+python3 scripts/mistine_data_query.py weixin-plan-materials --start 2026-09-01 --end 2026-09-07 --material-id 85102405 --sort cost
 python3 scripts/mistine_data_query.py adq-videos --start 2026-09-01 --end 2026-09-07 --account 123 --sort cost
 python3 scripts/mistine_data_query.py adq-videos --start 2026-09-01 --end 2026-09-07 --uploader 申丹丹 --sort cost
 python3 scripts/mistine_data_query.py adq-adgroups --date yesterday --room MISTINE蜜丝婷防晒护肤店
@@ -43,6 +45,8 @@ python3 scripts/mistine_data_query.py mapping --adq-video-id 123456789
 - 如果只有人名而没有素材或投放角色语境，且不同解释会改变查询结果，先简短反问：“你指云视频上传人/视频作者，还是投手/账户负责人？”若用户已说“视频作者”或“上传人”，不要重复反问。
 - 微信豆 `dim_material` 和 ADQ `video_assets` 已物化云视频上传人、标题、分组、类型及映射状态，普通素材查询直接读取这些维表字段。后台映射表仍是证据源；结果必须保留映射状态，未匹配或候选歧义不得强填，也不得用平台创建人或账户归属代替确定映射。
 - `--creator` 仅表示微信豆平台记录的投放创建人，不等于云视频上传人或实际视频作者。
+- 微信豆计划维度使用独立的 `weixin-plan-materials` 命令，粒度为“计划 × 素材”（单日查询时即“日期 × 计划 × 素材”）。返回计划 ID、素材 ID/短编码、投放创建人、订单类型、活跃日期、消耗、加权 ROI 和云视频映射。它不能与 `weixin-materials` 明细直接逐行相加，否则会重复计算。
+- “素材出现在计划分析结果”只表示该组合产生过平台可返回的数据；要分别报告关系素材数、有播放/曝光素材数和有消耗素材数。完全零曝光、零播放、零消耗的纯配置素材可能不返回，不能据此断言计划没有配置该素材。
 - 所有对外金额统一使用人民币“元”。微信豆金额源数据本身是元；ADQ 金额源数据是分，但 CLI 会自动除以 100 后输出元，禁止再次除以 100。`--min-cost` 对微信豆和 ADQ 都按元输入。
 - ROI 是无单位倍数，必须用同一币种的汇总 GMV ÷ 汇总消耗重算；CTR、CVR、完播率等比率返回 0–1 小数，只在展示为百分比时乘以 100。计数类字段不得做金额换算。
 - 不得用 `空值→0` 或整数取整处理 ROI/CVR。若响应同时给出分子、分母，应按汇总值复算并交叉验证；例如净订单数 1、商品点击数 1 时，净 CVR 是 100%，不是 0。

@@ -56,10 +56,13 @@ python3 ~/.workbuddy/skills/mistine-data-query/scripts/mistine_data_query.py aut
 CLI=~/.workbuddy/skills/mistine-data-query/scripts/mistine_data_query.py
 python3 "$CLI" status
 python3 "$CLI" weixin-materials --date yesterday --room 小粉帽 --min-cost 500
+python3 "$CLI" weixin-plan-materials --date yesterday --plan-id 1_5241694310_130 --sort cost
 python3 "$CLI" adq-accounts --date yesterday --limit 20
 python3 "$CLI" adq-adgroups --date yesterday --room MISTINE蜜丝婷防晒护肤店
 python3 "$CLI" adq-videos --start 2026-09-01 --end 2026-09-07 --sort cost
 python3 "$CLI" cloud-videos --uploader 申丹丹 --not-deleted
 ```
+
+`weixin-plan-materials` 是独立的“计划 × 素材”查询，可查看每条计划实际返回了哪些素材及其消耗、加权 ROI、创建人和云视频映射。完全零曝光、零播放、零消耗的纯配置素材可能不会被分析接口返回，因此“进入计划”和“实际产生投放数据”需要分开判断。
 
 查询服务只提供固定只读接口，不接受任意 SQL，也不能修改广告、素材或数据库。

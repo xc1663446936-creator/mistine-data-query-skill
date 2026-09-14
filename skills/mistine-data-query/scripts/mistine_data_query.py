@@ -18,7 +18,7 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1.8"
+VERSION = "0.1.9"
 DEFAULT_API_URL = "https://115.159.197.237"
 CONFIG = Path.home() / ".config/mistine-data-query/config.json"
 CA_BUNDLE = Path(__file__).resolve().parent.parent / "certs/mistine-api-ca.pem"
@@ -96,7 +96,7 @@ def dates(args) -> list[tuple[str, str]]:
 
 def common_params(args, command: str = "") -> list[tuple[str, str]]:
     out = dates(args)
-    for name in ("account", "room", "creator", "material_id", "adq_video_id", "cloud_video_id", "uploader", "title", "group", "type", "uploaded_start", "uploaded_end"):
+    for name in ("account", "room", "plan_id", "creator", "material_id", "order_class", "adq_video_id", "cloud_video_id", "uploader", "title", "group", "type", "uploaded_start", "uploaded_end"):
         value = getattr(args, name, None)
         if value not in (None, ""):
             out.append((name.replace("_", "-"), str(value)))
@@ -124,7 +124,7 @@ def normalize_result(command: str, result: dict) -> dict:
             "roi": "dimensionless ratio",
             "normalization": "ADQ source fen converted to yuan by client",
         }
-    elif command == "weixin-materials" and result.get("ok"):
+    elif command in ("weixin-materials", "weixin-plan-materials") and result.get("ok"):
         result["units"] = {
             "money": "CNY yuan",
             "rates": "decimal ratio; multiply by 100 only when formatting as percent",
@@ -180,6 +180,7 @@ def main() -> int:
     auto = sub.add_parser("auto-update"); auto.add_argument("state", choices=["on", "off"])
 
     wx = sub.add_parser("weixin-materials"); add_metric_query(wx); wx.add_argument("--creator"); wx.add_argument("--uploader"); wx.add_argument("--material-id")
+    wx_plan = sub.add_parser("weixin-plan-materials"); add_metric_query(wx_plan); wx_plan.add_argument("--plan-id"); wx_plan.add_argument("--creator"); wx_plan.add_argument("--uploader"); wx_plan.add_argument("--material-id"); wx_plan.add_argument("--order-class")
     for name in ("adq-accounts", "adq-adgroups", "adq-videos"):
         p = sub.add_parser(name); add_metric_query(p)
         if name == "adq-videos": p.add_argument("--adq-video-id"); p.add_argument("--uploader")
@@ -214,7 +215,7 @@ def main() -> int:
         result["update_available"] = result.get("skill_version") not in (None, VERSION)
     else:
         paths = {
-            "weixin-materials": "/v1/weixin/materials", "adq-accounts": "/v1/adq/accounts",
+            "weixin-materials": "/v1/weixin/materials", "weixin-plan-materials": "/v1/weixin/plan-materials", "adq-accounts": "/v1/adq/accounts",
             "adq-adgroups": "/v1/adq/adgroups", "adq-videos": "/v1/adq/videos",
             "cloud-videos": "/v1/cloud/videos", "mapping": "/v1/mapping",
         }
