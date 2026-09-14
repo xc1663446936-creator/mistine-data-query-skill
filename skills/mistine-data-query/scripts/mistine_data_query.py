@@ -17,7 +17,8 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1.3"
+VERSION = "0.1.4"
+DEFAULT_API_URL = "https://mistine-data-api.sucaicloud.com"
 CONFIG = Path.home() / ".config/mistine-data-query/config.json"
 
 
@@ -29,7 +30,7 @@ def load_stored_config() -> dict:
 
 def load_config() -> dict:
     data = load_stored_config()
-    data["api_url"] = os.getenv("MISTINE_DATA_API_URL", data.get("api_url", ""))
+    data["api_url"] = os.getenv("MISTINE_DATA_API_URL", data.get("api_url") or DEFAULT_API_URL)
     data["api_token"] = os.getenv("MISTINE_DATA_API_TOKEN", data.get("api_token", ""))
     return data
 
@@ -136,7 +137,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="MISTINE 微信豆、ADQ、云视频只读查询")
     sub = parser.add_subparsers(dest="command", required=True)
     setup = sub.add_parser("setup")
-    setup.add_argument("--api-url", required=True)
+    setup.add_argument("--api-url", default=DEFAULT_API_URL)
     setup.add_argument("--token-file", help=argparse.SUPPRESS)
     sub.add_parser("status")
     set_repo = sub.add_parser("set-repo", help="记录安装源（通常由 install.sh 调用）")

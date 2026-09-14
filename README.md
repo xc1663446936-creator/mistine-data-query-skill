@@ -12,9 +12,9 @@ curl -fsSL https://raw.githubusercontent.com/xc1663446936-creator/mistine-data-q
 
 首次安装后，在 WorkBuddy 中说：
 
-> 配置 MISTINE 数据查询，API 地址是管理员提供的地址。
+> 配置 MISTINE 数据查询。
 
-WorkBuddy 会调用 Skill 的 `setup`，并通过隐藏输入读取个人 API Key。密钥不会出现在聊天、命令历史或 Git 仓库中。
+WorkBuddy 会使用固定 HTTPS 入口 `https://mistine-data-api.sucaicloud.com` 调用 Skill 的 `setup`，并通过隐藏输入读取个人 API Key。密钥不会出现在聊天、命令历史或 Git 仓库中。
 
 ## Codex 安装
 
@@ -24,11 +24,10 @@ cd mistine-data-query-skill
 ./install.sh codex
 ```
 
-安装后配置管理员单独提供的 HTTPS API 地址和个人密钥：
+安装后配置个人密钥：
 
 ```bash
-python3 ~/.workbuddy/skills/mistine-data-query/scripts/mistine_data_query.py setup \
-  --api-url https://<管理员提供的查询地址>
+python3 ~/.workbuddy/skills/mistine-data-query/scripts/mistine_data_query.py setup
 ```
 
 密钥输入不会回显，本机配置文件权限为 `600`。不要把密钥发送到群聊、提交到 Git，或写进自动化脚本。

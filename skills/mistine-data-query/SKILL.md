@@ -10,11 +10,11 @@ description: 通过公司只读 API 查询 MISTINE 微信豆、ADQ 和云视频�
 ## 首次配置
 
 ```bash
-python3 scripts/mistine_data_query.py setup --api-url https://管理员提供的地址
+python3 scripts/mistine_data_query.py setup
 python3 scripts/mistine_data_query.py status
 ```
 
-密钥通过隐藏输入读取，保存于 `~/.config/mistine-data-query/config.json`，权限为 `600`。禁止在回答、日志、截图、命令参数或 Git 仓库中回显密钥。
+固定入口为 `https://mistine-data-api.sucaicloud.com`；只有管理员迁移服务时才需要用 `--api-url` 覆盖。密钥通过隐藏输入读取，保存于 `~/.config/mistine-data-query/config.json`，权限为 `600`。禁止在回答、日志、截图、命令参数或 Git 仓库中回显密钥。
 
 WorkBuddy 安装器会默认开启自动更新。若用户要求安装或升级本 Skill，优先运行公开的一键安装命令；它不需要 GitHub 登录，并会保留已有 API 配置：
 
