@@ -26,7 +26,9 @@ curl -fsSL https://raw.githubusercontent.com/xc1663446936-creator/mistine-data-q
 
 ```bash
 python3 scripts/mistine_data_query.py weixin-materials --date yesterday --room 小粉帽 --min-cost 500 --sort cost
+python3 scripts/mistine_data_query.py weixin-materials --start 2026-09-01 --end 2026-09-07 --uploader 申丹丹 --sort cost
 python3 scripts/mistine_data_query.py adq-videos --start 2026-09-01 --end 2026-09-07 --account 123 --sort cost
+python3 scripts/mistine_data_query.py adq-videos --start 2026-09-01 --end 2026-09-07 --uploader 申丹丹 --sort cost
 python3 scripts/mistine_data_query.py adq-adgroups --date yesterday --room MISTINE蜜丝婷防晒护肤店
 python3 scripts/mistine_data_query.py adq-accounts --date yesterday
 python3 scripts/mistine_data_query.py cloud-videos --uploaded-start 2026-09-01 --uploader 申丹丹 --not-deleted
@@ -37,6 +39,10 @@ python3 scripts/mistine_data_query.py mapping --adq-video-id 123456789
 
 ## 输出要求
 
+- 人名必须先判定角色。问题出现“视频、素材、上传、作者、谁做的”等素材语境时，默认把人名解释为云视频管家的上传人/视频作者，并用 `--uploader` 经映射查询微信豆或 ADQ 投放事实；不得把该人直接当成投手、账户负责人或平台“创建人”。
+- 如果只有人名而没有素材或投放角色语境，且不同解释会改变查询结果，先简短反问：“你指云视频上传人/视频作者，还是投手/账户负责人？”若用户已说“视频作者”或“上传人”，不要重复反问。
+- 微信豆和 ADQ 的投放事实库本身不提供可信的云视频上传人字段。按上传人查询时必须经过云视频映射表，并在结果中报告映射状态、未映射数量和候选歧义；不得用标题相似、平台创建人或账户归属代替确定映射。
+- `--creator` 仅表示微信豆平台记录的投放创建人，不等于云视频上传人或实际视频作者。
 - 必须说明数据源、北京时间范围、筛选条件、服务端刷新时间和返回行数。
 - 消耗、订单、GMV 可求和；ROI 必须用汇总 GMV ÷ 汇总消耗重算，不能平均每日 ROI。
 - 空值和无返回保持为空，不得解释成 0。

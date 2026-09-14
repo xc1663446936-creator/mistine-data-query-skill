@@ -18,7 +18,7 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 DEFAULT_API_URL = "https://115.159.197.237"
 CONFIG = Path.home() / ".config/mistine-data-query/config.json"
 CA_BUNDLE = Path(__file__).resolve().parent.parent / "certs/mistine-api-ca.pem"
@@ -151,14 +151,14 @@ def main() -> int:
     update = sub.add_parser("update"); update.add_argument("--force", action="store_true")
     auto = sub.add_parser("auto-update"); auto.add_argument("state", choices=["on", "off"])
 
-    wx = sub.add_parser("weixin-materials"); add_metric_query(wx); wx.add_argument("--creator"); wx.add_argument("--material-id")
+    wx = sub.add_parser("weixin-materials"); add_metric_query(wx); wx.add_argument("--creator"); wx.add_argument("--uploader"); wx.add_argument("--material-id")
     for name in ("adq-accounts", "adq-adgroups", "adq-videos"):
         p = sub.add_parser(name); add_metric_query(p)
-        if name == "adq-videos": p.add_argument("--adq-video-id")
+        if name == "adq-videos": p.add_argument("--adq-video-id"); p.add_argument("--uploader")
     cloud = sub.add_parser("cloud-videos")
     cloud.add_argument("--cloud-video-id"); cloud.add_argument("--uploader"); cloud.add_argument("--title"); cloud.add_argument("--group"); cloud.add_argument("--type")
     cloud.add_argument("--uploaded-start"); cloud.add_argument("--uploaded-end"); cloud.add_argument("--not-deleted", action="store_true"); cloud.add_argument("--sort", default="uploaded_at"); cloud.add_argument("--limit", type=int, default=100)
-    mapping = sub.add_parser("mapping"); mapping.add_argument("--account"); mapping.add_argument("--adq-video-id"); mapping.add_argument("--cloud-video-id"); mapping.add_argument("--limit", type=int, default=100)
+    mapping = sub.add_parser("mapping"); mapping.add_argument("--account"); mapping.add_argument("--adq-video-id"); mapping.add_argument("--cloud-video-id"); mapping.add_argument("--uploader"); mapping.add_argument("--limit", type=int, default=100)
     args = parser.parse_args()
 
     if args.command == "set-repo":
