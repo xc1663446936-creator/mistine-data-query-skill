@@ -2,13 +2,13 @@
 
 ## 微信豆
 
-`weixin-materials` 按公开素材编号汇总所选日期的数据，支持直播间、投放创建人（`--creator`）、云视频上传人/视频作者（`--uploader`）、素材编号、订单类型、最低消耗和最低净 ROI。返回消耗、播放、完播、进房、商品曝光与点击、直接/7日归因/净成交、GMV、ROI、CVR 和 CPA。`--uploader` 通过 `material_cloud_video_link` 映射，不把投放创建人当成视频作者。
+`weixin-materials` 按公开素材编号汇总所选日期的数据，支持直播间、投放创建人（`--creator`）、云视频上传人/视频作者（`--uploader`）、素材编号、订单类型、最低消耗和最低净 ROI。返回消耗、播放、完播、进房、商品曝光与点击、直接/7日归因/净成交、GMV、ROI、CVR 和 CPA。`--uploader` 直接读取 `dim_material` 中后台物化的云视频字段，不把投放创建人当成视频作者。
 
 ## ADQ
 
 - `adq-accounts`：账户 × 日期汇总。
 - `adq-adgroups`：广告计划 × 日期汇总，并关联计划名称和直播间。
-- `adq-videos`：账户 × 素材 × 日期汇总，并关联素材名称、来源类型与云视频映射；支持用 `--uploader` 按云视频当前素材或原创素材上传人筛选。
+- `adq-videos`：账户 × 素材 × 日期汇总，直接读取 `video_assets` 中已物化的云视频映射字段；支持用 `--uploader` 按云视频当前素材或原创素材上传人筛选。
 
 ADQ 的 `order_roi`、`order_24h_roi`、`first_day_order_roi` 和 `order_net_roi` 口径不同，输出时保留字段名，不混称为同一个 ROI。
 

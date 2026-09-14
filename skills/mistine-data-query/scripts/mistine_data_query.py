@@ -18,7 +18,7 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1.6"
+VERSION = "0.1.7"
 DEFAULT_API_URL = "https://115.159.197.237"
 CONFIG = Path.home() / ".config/mistine-data-query/config.json"
 CA_BUNDLE = Path(__file__).resolve().parent.parent / "certs/mistine-api-ca.pem"
