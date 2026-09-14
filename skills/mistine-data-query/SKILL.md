@@ -16,6 +16,12 @@ python3 scripts/mistine_data_query.py status
 
 密钥通过隐藏输入读取，保存于 `~/.config/mistine-data-query/config.json`，权限为 `600`。禁止在回答、日志、截图、命令参数或 Git 仓库中回显密钥。
 
+WorkBuddy 安装器会默认开启自动更新。若用户要求安装或升级本 Skill，优先运行公开的一键安装命令；它不需要 GitHub 登录，并会保留已有 API 配置：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/xc1663446936-creator/mistine-data-query-skill/main/install-workbuddy.sh | sh
+```
+
 ## 查询入口
 
 ```bash
@@ -45,5 +51,4 @@ python3 scripts/mistine_data_query.py mapping --adq-video-id 123456789
 
 ## 更新
 
-`status` 会比较本地与服务端推荐版本。运行 `update` 可从安装时记录的 Git 仓库执行 `git pull --ff-only` 后重装；`auto-update on` 可选择每天检查一次。更新失败时保留旧版本并报告原因。
-
+`status` 会比较本地与服务端推荐版本。运行 `update` 可从安装时记录的公开 Git 仓库执行 `git pull --ff-only` 后重装。WorkBuddy 安装默认启用 `auto-update on`：查询时每天最多检查一次，不需要独立后台任务。更新失败时保留旧版本并报告原因。

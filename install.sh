@@ -2,8 +2,9 @@
 set -eu
 
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+mode=${1:-workbuddy}
 
-case "${1:-codex}" in
+case "$mode" in
   codex) target="${CODEX_HOME:-"$HOME/.codex"}/skills/mistine-data-query" ;;
   workbuddy) target="$HOME/.workbuddy/skills/mistine-data-query" ;;
   --target)
@@ -17,5 +18,12 @@ mkdir -p "$target"
 rsync -a --delete --exclude '__pycache__' "$repo_dir/skills/mistine-data-query/" "$target/"
 chmod 755 "$target/scripts/mistine_data_query.py"
 python3 "$target/scripts/mistine_data_query.py" set-repo --path "$repo_dir" --target "$target" >/dev/null
+if [ "$mode" = "workbuddy" ]; then
+  python3 "$target/scripts/mistine_data_query.py" auto-update on >/dev/null
+fi
 echo "Installed: $target"
-echo "Next: python3 $target/scripts/mistine_data_query.py setup --api-url <HTTPS API URL>"
+if [ "$mode" = "workbuddy" ]; then
+  echo "Automatic updates: enabled (checked at most once every 24 hours when used)"
+fi
+echo "Existing API configuration: preserved"
+echo "If this is the first install, ask WorkBuddy to configure the API address and personal key."
