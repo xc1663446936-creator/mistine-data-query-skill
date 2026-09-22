@@ -17,7 +17,9 @@ ADQ 查询的 `--min-cost` 也按元填写，CLI 会在请求前转换为源数�
 
 ## 微信豆
 
-`weixin-materials` 按公开素材编号汇总所选日期的数据，支持直播间、投放创建人（`--creator`）、云视频上传人/视频作者（`--uploader`）、素材编号、订单类型、最低消耗和最低净 ROI。返回消耗、播放、完播、进房、商品曝光与点击、直接/7日归因/净成交、GMV、ROI、CVR 和 CPA。`--uploader` 直接读取 `dim_material` 中后台物化的云视频字段，不把投放创建人当成视频作者。
+`weixin-materials` 先按 [稳定业务键去重](database-contract.md)，再按公开素材编号汇总所选日期的数据。支持直播间、投放创建人（`--creator`）、云视频上传人/视频作者（`--uploader`）、素材编号、`--order-class` 原始枚举、最低消耗和最低净 ROI；不支持将采集账号当成消耗账户筛选。返回消耗、播放、完播、进房、商品曝光与点击、直接/净成交金额与 ROI、净 CVR、去重审计计数和数据截止时间。`--uploader` 读取已物化的云视频字段，不把创建人当作者。计划素材接口另有 7 日归因 ROI；不要承诺素材接口未返回的字段。
+
+检查 `data_contract.version=weixin-material-day-v1` 和 `roi_basis`。分析页 ROI 不是经订单详情核验的最终 ROI；未知身份记录及历史覆盖不足必须说明。
 
 ### 微信豆计划 × 素材
 

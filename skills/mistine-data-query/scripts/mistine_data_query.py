@@ -18,7 +18,7 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1.10"
+VERSION = "0.1.11"
 DEFAULT_API_URL = "https://115.159.197.237"
 CONFIG = Path.home() / ".config/mistine-data-query/config.json"
 CA_BUNDLE = Path(__file__).resolve().parent.parent / "certs/mistine-api-ca.pem"
@@ -125,6 +125,8 @@ def normalize_result(command: str, result: dict) -> dict:
             "normalization": "ADQ source fen converted to yuan by client",
         }
     elif command in ("weixin-materials", "weixin-plan-materials") and result.get("ok"):
+        if command == "weixin-materials" and result.get("data_contract", {}).get("version") != "weixin-material-day-v1":
+            return {"ok": False, "error": "Server does not expose verified material deduplication contract; refusing an unverified total. Upgrade server first."}
         result["units"] = {
             "money": "CNY yuan",
             "rates": "decimal ratio; multiply by 100 only when formatting as percent",
@@ -179,7 +181,7 @@ def main() -> int:
     update = sub.add_parser("update"); update.add_argument("--force", action="store_true")
     auto = sub.add_parser("auto-update"); auto.add_argument("state", choices=["on", "off"])
 
-    wx = sub.add_parser("weixin-materials"); add_metric_query(wx); wx.add_argument("--creator"); wx.add_argument("--uploader"); wx.add_argument("--material-id")
+    wx = sub.add_parser("weixin-materials"); add_metric_query(wx); wx.add_argument("--creator"); wx.add_argument("--uploader"); wx.add_argument("--material-id"); wx.add_argument("--order-class", type=int)
     wx_plan = sub.add_parser("weixin-plan-materials"); add_metric_query(wx_plan); wx_plan.add_argument("--plan-id"); wx_plan.add_argument("--creator"); wx_plan.add_argument("--uploader"); wx_plan.add_argument("--material-id"); wx_plan.add_argument("--order-class")
     for name in ("adq-accounts", "adq-adgroups", "adq-videos"):
         p = sub.add_parser(name); add_metric_query(p)
@@ -222,7 +224,7 @@ def main() -> int:
         result = request(paths[args.command], common_params(args, args.command))
         result = normalize_result(args.command, result)
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    return 0
+    return 0 if result.get("ok", True) else 1
 
 
 if __name__ == "__main__":
