@@ -25,4 +25,8 @@ class DataContractTests(unittest.TestCase):
         result=client.normalize_result('weixin-plan-materials',{'ok':True,'rows':[{'cost':40}]})
         self.assertTrue(result['ok']);self.assertNotIn('data_contract',result)
 
+    def test_server_recommendation_older_than_local_is_not_update(self):
+        self.assertFalse(client.newer_version('0.1.11','0.1.12'))
+        self.assertTrue(client.newer_version('0.1.13','0.1.12'))
+
 if __name__=='__main__':unittest.main(verbosity=2)

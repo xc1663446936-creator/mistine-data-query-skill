@@ -1,11 +1,11 @@
 ---
 name: mistine-data-query
-description: 通过公司只读 API 查询 MISTINE 微信豆、ADQ 和云视频管家数据，支持素材消耗、计划、上传人和映射查询；包含 ADQ 素材卡审及拒审原因的数据查询说明（数据库已接入，API入口待开放）。不用于任意 SQL、抓取网页或修改生产数据。
+description: 只读查询 MISTINE 微信豆、ADQ、云视频管家素材投放数据及微信小店订单的 GMV、GSV、退款和自播/达播表现；支持素材映射、计划和订单分维度分析。不用于任意 SQL、抓取网页或修改生产数据。
 ---
 
 # MISTINE 统一数据查询
 
-使用 `scripts/mistine_data_query.py` 调用公司的只读查询 API。数据库、平台登录凭证和 SSH 均留在服务器；客户端只保存个人 API Key。
+统一入口为 `scripts/mistine_data_query.py`。微信豆、ADQ、云视频查询走公司的只读 API，客户端只保存个人 API Key；`shop-orders` 订单查询单独读取本机订单主库或经既有 SSH 授权读取服务器备份，**不**使用广告数据 API Key，也不授予新权限。
 
 ## 首次配置
 
@@ -35,9 +35,17 @@ python3 scripts/mistine_data_query.py adq-adgroups --date yesterday --room MISTI
 python3 scripts/mistine_data_query.py adq-accounts --date yesterday
 python3 scripts/mistine_data_query.py cloud-videos --uploaded-start 2026-09-01 --uploader 申丹丹 --not-deleted
 python3 scripts/mistine_data_query.py mapping --adq-video-id 123456789
+python3 scripts/mistine_data_query.py shop-orders status
+python3 scripts/mistine_data_query.py shop-orders query --start 2026-09-01 --end 2026-09-28 --scope 自播 --grain byday
 ```
 
 所有相对日期按北京时间解释。默认最多返回 100 行，服务端硬上限 5,000 行、单次日期范围 366 天。需要完整字段说明时读取 [references/queries.md](references/queries.md)。
+
+## 微信小店订单（与广告消耗分开）
+
+`shop-orders status` 查看订单库来源、最新成功批次和付款数据截止时间；`shop-orders query` 支持 `--date yesterday` 或 `--start/--end`、`--scope 自播|达播|全部`、`--grain summary|byday|bymonth|shop|live_room|channel|product|sku|refund_reason`，以及店铺、渠道、商品 ID、SKU、带货账号过滤。默认本地主库；无本地库时尝试内网备份，`--source remote` 可显式指定。无授权 SSH/VPN 时不能用备份，不得将访问失败说成数据库损坏。
+
+订单按 `pay_time` 归属付款日，视图是商品明细粒度；订单数按店铺+订单 ID 去重，销量为 `SUM(quantity)`。GMV、退款和 GSV 单位元；退款率按汇总退款/汇总 GMV 重算。自播含关联账号和自然成交，达播含达人带货和机构推广。退款为查询时最新成功售后金额，历史付款日会滚动变化。对外说明绝对日期、来源、批次、截止时间和未覆盖情况。完整字段与口径见 [订单查询规则](references/shop-orders.md)。订单 GMV/GSV 不能与微信豆、ADQ 的广告消耗混为一列或算作同一指标。
 
 ## ADQ 素材卡审查询（数据库已接入）
 
@@ -70,7 +78,7 @@ python3 scripts/mistine_data_query.py mapping --adq-video-id 123456789
 
 ## 金额冲突与最终核验
 
-- 素材金额、历史累计、重复记录或 ROI 核验时，先读 [数据库粒度与去重规则](references/database-contract.md)。微信豆素材 API 必须返回 `data_contract.version=weixin-material-day-v1`；缺失时不得交付确定总额。0.1.11 客户端会拒绝不含该契约的素材响应。
+- 素材金额、历史累计、重复记录或 ROI 核验时，先读 [数据库粒度与去重规则](references/database-contract.md)。微信豆素材 API 必须返回 `data_contract.version=weixin-material-day-v1`；缺失时不得交付确定总额。客户端会拒绝不含该契约的素材响应。
 - 微信豆 `account_key` 是采集/登录上下文，不是可相加的广告消耗账户。主账号与员工分身可以查看相同平台数据，但已保存快照可能因时间、筛选或采集缺口而不同；某上下文没保存记录不证明它没有查看权限。按稳定业务键取最新整行，不跨上下文直接 SUM，也不因只保留某个不完整快照而丢掉历史记录。
 - 两个来源不一致时，先撤回未核验的确定金额。不得因截图、金额较小或恰好相差两倍，就选一个称为“最可信”；不得直接把结果除以二。
 - 核对同一北京时间日期、长素材 ID、直播间、创建人、订单类型及刷新时间。检查原始 HTTP 响应与客户端输出，先排除单位或客户端计算问题。
@@ -81,7 +89,7 @@ python3 scripts/mistine_data_query.py mapping --adq-video-id 123456789
 
 ## 安全边界
 
-- 普通数据查询只调用固定 API，不直接连接生产数据库，不接受或拼接用户提供的 SQL。用户明确授权的故障核验可使用已有授权连接，以数据库只读模式执行范围受限的诊断查询；不得借此扩大到写入、采集或部署。
+- 广告和素材普通查询只调用固定 API。`shop-orders` 是本 Skill 唯一的订单 SQLite 查询入口：固定只读、日期有界、维度白名单和参数绑定；不接受用户 SQL，不读取买家/收件信息。用户明确授权的故障核验可使用已有授权连接，以数据库只读模式执行范围受限的诊断查询；不得借此扩大到写入、采集或部署。
 - 查询是只读的；创建、禁用密钥、部署服务、刷新生产库和修改广告不属于普通 Skill 使用范围。
 - 个人密钥只授权给指定姓名，可按 `weixin`、`adq`、`cloud` 范围独立控制并记录审计。
 

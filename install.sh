@@ -17,16 +17,28 @@ esac
 mkdir -p "$target"
 rsync -a --delete --exclude '__pycache__' "$repo_dir/skills/mistine-data-query/" "$target/"
 chmod 755 "$target/scripts/mistine_data_query.py"
-orders_target="$(dirname "$target")/weixin-shop-order-query"
-mkdir -p "$orders_target"
-rsync -a --delete --exclude '__pycache__' "$repo_dir/skills/weixin-shop-order-query/" "$orders_target/"
-chmod 755 "$orders_target/scripts/order_query.py"
+chmod 755 "$target/scripts/shop_order_query.py"
+# Retire only the exact standalone 0.1.0 SKILL.md shipped by this repository.
+# Keep all files recoverable; never touch a locally edited legacy skill.
+python3 - "$target" <<'PY'
+import hashlib
+import pathlib
+import sys
+
+legacy = pathlib.Path(sys.argv[1]).parent / "weixin-shop-order-query" / "SKILL.md"
+if legacy.is_file():
+    digest = hashlib.sha256(legacy.read_bytes()).hexdigest()
+    if digest == "0768cde700b02d148513b46c6b568fbfbe84163e601a90312326fa088744c3e0":
+        legacy.rename(legacy.with_name("SKILL.md.retired"))
+        print(f"Retired legacy standalone skill: {legacy.parent}")
+    else:
+        print(f"Preserved modified standalone skill: {legacy.parent}")
+PY
 python3 "$target/scripts/mistine_data_query.py" set-repo --path "$repo_dir" --target "$target" >/dev/null
 if [ "$mode" = "workbuddy" ]; then
   python3 "$target/scripts/mistine_data_query.py" auto-update on >/dev/null
 fi
 echo "Installed: $target"
-echo "Installed: $orders_target"
 if [ "$mode" = "workbuddy" ]; then
   echo "Automatic updates: enabled (checked before every use)"
 fi

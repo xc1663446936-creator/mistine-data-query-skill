@@ -1,6 +1,6 @@
 # MISTINE 数据查询 Skill
 
-面向已授权同事的只读查询客户端，包含两个独立 Skill：`mistine-data-query`（微信豆、ADQ、云视频管家，只读 API）和 `weixin-shop-order-query`（微信小店订单，本地主库或内网服务器备份）。本仓库不包含数据库、平台凭证、服务器代码、SSH 私钥或任何 API Key。订单库访问需要本机数据库或已授权的内网 SSH，不由原有 API Key 自动授予。
+面向已授权同事的统一只读 Skill `mistine-data-query`：微信豆、ADQ、云视频管家走只读 API；微信小店订单走本地主库或内网服务器备份。本仓库不包含数据库、平台凭证、服务器代码、SSH 私钥或任何 API Key。订单库访问需要本机数据库或已授权的内网 SSH，不由原有 API Key 自动授予。
 
 ## WorkBuddy 一键安装（推荐）
 
@@ -69,11 +69,11 @@ python3 "$CLI" cloud-videos --uploader 申丹丹 --not-deleted
 
 ## 微信小店订单查询
 
-安装器会同时安装 `weixin-shop-order-query`。它与微信豆广告消耗不是同一数据源，查询已付款订单的 GMV、GSV、滚动退款、订单数和销量：
+订单能力已并入同一个 `mistine-data-query` Skill。它与微信豆广告消耗不是同一数据源，查询已付款订单的 GMV、GSV、滚动退款、订单数和销量：
 
 ```bash
-python3 ~/.workbuddy/skills/weixin-shop-order-query/scripts/order_query.py status
-python3 ~/.workbuddy/skills/weixin-shop-order-query/scripts/order_query.py query --start 2026-09-01 --end 2026-09-28 --scope 自播 --grain byday
+python3 ~/.workbuddy/skills/mistine-data-query/scripts/mistine_data_query.py shop-orders status
+python3 ~/.workbuddy/skills/mistine-data-query/scripts/mistine_data_query.py shop-orders query --start 2026-09-01 --end 2026-09-28 --scope 自播 --grain byday
 ```
 
-在 Codex 中安装时，对应路径是 `~/.codex/skills/weixin-shop-order-query/`。默认先读本机主库；本机没有数据库时才尝试公司内网服务器只读备份。明确要求服务器时使用 `--source remote`，需要既有 SSH 授权和内网/VPN。查询必须有日期边界，不提供任意 SQL，也不输出买家/收件信息。细节见 [订单查询 Skill](skills/weixin-shop-order-query/SKILL.md)。
+在 Codex 中同样通过 `~/.codex/skills/mistine-data-query/` 使用。默认先读本机主库；本机没有数据库时才尝试公司内网服务器只读备份。明确要求服务器时使用 `--source remote`，需要既有 SSH 授权和内网/VPN。查询必须有日期边界，不提供任意 SQL，也不输出买家/收件信息。细节见 [订单查询规则](skills/mistine-data-query/references/shop-orders.md)。

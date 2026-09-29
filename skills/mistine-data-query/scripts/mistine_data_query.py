@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stdlib-only client for the MISTINE read-only data API."""
+"""Stdlib-only client for MISTINE read-only ads and shop-order queries."""
 from __future__ import annotations
 
 import argparse
@@ -8,6 +8,7 @@ import getpass
 import json
 import os
 from pathlib import Path
+import shutil
 import ssl
 import subprocess
 import sys
@@ -18,7 +19,7 @@ import urllib.request
 import uuid
 from zoneinfo import ZoneInfo
 
-VERSION = "0.1.11"
+VERSION = "0.1.12"
 DEFAULT_API_URL = "https://115.159.197.237"
 CONFIG = Path.home() / ".config/mistine-data-query/config.json"
 CA_BUNDLE = Path(__file__).resolve().parent.parent / "certs/mistine-api-ca.pem"
@@ -135,6 +136,15 @@ def normalize_result(command: str, result: dict) -> dict:
     return result
 
 
+def newer_version(remote: str | None, local: str) -> bool:
+    if not remote:
+        return False
+    try:
+        return tuple(int(part) for part in remote.split(".")) > tuple(int(part) for part in local.split("."))
+    except (TypeError, ValueError):
+        return remote != local
+
+
 def add_dates(p):
     p.add_argument("--date", help="YYYY-MM-DD、today 或 yesterday")
     p.add_argument("--start")
@@ -156,7 +166,22 @@ def run_update(force: bool = False) -> dict:
     repo = Path(cfg.get("repo_dir", "")).expanduser()
     if not repo or not (repo / ".git").exists() or not (repo / "install.sh").exists():
         raise RuntimeError("未记录可更新的 Git 仓库。请从 GitHub clone 后运行仓库内 install.sh。")
-    pull = subprocess.run(["git", "-C", str(repo), "pull", "--ff-only"], text=True, capture_output=True, timeout=120)
+    git_candidates = [os.getenv("MISTINE_GIT_BIN"), shutil.which("git"),
+                      str(Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback/git")]
+    git_bin = None
+    for candidate in git_candidates:
+        if not candidate:
+            continue
+        try:
+            check = subprocess.run([candidate, "--version"], text=True, capture_output=True, timeout=5)
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        if check.returncode == 0:
+            git_bin = candidate
+            break
+    if not git_bin:
+        raise RuntimeError("本机没有可用的 Git；旧版本已保留。")
+    pull = subprocess.run([git_bin, "-C", str(repo), "pull", "--ff-only"], text=True, capture_output=True, timeout=120)
     save_config(last_update_check=int(time.time()))
     if pull.returncode:
         raise RuntimeError("Git 更新失败，旧版本已保留: " + (pull.stderr.strip() or pull.stdout.strip()))
@@ -169,7 +194,7 @@ def run_update(force: bool = False) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="MISTINE 微信豆、ADQ、云视频只读查询")
+    parser = argparse.ArgumentParser(description="MISTINE 微信豆、ADQ、云视频及微信小店订单只读查询")
     sub = parser.add_subparsers(dest="command", required=True)
     setup = sub.add_parser("setup")
     setup.add_argument("--api-url", default=DEFAULT_API_URL)
@@ -190,6 +215,9 @@ def main() -> int:
     cloud.add_argument("--cloud-video-id"); cloud.add_argument("--uploader"); cloud.add_argument("--title"); cloud.add_argument("--group"); cloud.add_argument("--type")
     cloud.add_argument("--uploaded-start"); cloud.add_argument("--uploaded-end"); cloud.add_argument("--not-deleted", action="store_true"); cloud.add_argument("--sort", default="uploaded_at"); cloud.add_argument("--limit", type=int, default=100)
     mapping = sub.add_parser("mapping"); mapping.add_argument("--account"); mapping.add_argument("--adq-video-id"); mapping.add_argument("--cloud-video-id"); mapping.add_argument("--uploader"); mapping.add_argument("--limit", type=int, default=100)
+    shop = sub.add_parser("shop-orders", help="微信小店订单查询；不使用广告数据 API Key")
+    shop.add_argument("shop_mode", choices=("status", "query"))
+    shop.add_argument("shop_args", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
     if args.command == "set-repo":
@@ -211,10 +239,14 @@ def main() -> int:
     if load_config().get("auto_update"):
         try: run_update()
         except RuntimeError as exc: print(json.dumps({"warning": str(exc)}, ensure_ascii=False), file=sys.stderr)
+    if args.command == "shop-orders":
+        helper = Path(__file__).resolve().parent / "shop_order_query.py"
+        command = [sys.executable, str(helper), args.shop_mode, *args.shop_args]
+        return subprocess.call(command)
     if args.command == "status":
         result = request("/health")
         result["local_skill_version"] = VERSION
-        result["update_available"] = result.get("skill_version") not in (None, VERSION)
+        result["update_available"] = newer_version(result.get("skill_version"), VERSION)
     else:
         paths = {
             "weixin-materials": "/v1/weixin/materials", "weixin-plan-materials": "/v1/weixin/plan-materials", "adq-accounts": "/v1/adq/accounts",

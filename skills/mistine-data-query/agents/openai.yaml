@@ -1,7 +1,6 @@
 interface:
   display_name: "MISTINE 数据查询"
-  short_description: "只读查询微信豆、ADQ与云视频管家数据库"
-  default_prompt: "使用 $mistine-data-query 查询指定日期和条件的投放或素材数据。"
+  short_description: "只读查询 MISTINE 素材投放、计划映射与微信小店订单数据"
+  default_prompt: "使用 $mistine-data-query 查询指定日期的素材投放或微信小店订单数据。"
 policy:
   allow_implicit_invocation: true
-

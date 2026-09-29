@@ -6,7 +6,7 @@ import types
 import unittest
 
 
-SCRIPT = pathlib.Path(__file__).resolve().parents[1] / "skills/weixin-shop-order-query/scripts/order_query.py"
+SCRIPT = pathlib.Path(__file__).resolve().parents[1] / "skills/mistine-data-query/scripts/shop_order_query.py"
 spec = importlib.util.spec_from_file_location("order_query", SCRIPT)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)

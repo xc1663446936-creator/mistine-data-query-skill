@@ -1,4 +1,4 @@
-# 订单数据库字段与边界
+# 微信小店订单数据库字段与边界
 
 本机主库默认路径：`/Users/xuchao/Desktop/蜜丝婷工作文档/订单数据分析/database/微信小店订单.sqlite3`。服务器副本：`xsc@172.18.3.55:/data/weixin-shop-order-backup/微信小店订单.sqlite3`，元数据 `manifest.json`。主库事务性入库，备份通常在成功批次后静默 10 分钟才同步；服务器不能当作实时主库。
 
