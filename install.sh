@@ -17,11 +17,16 @@ esac
 mkdir -p "$target"
 rsync -a --delete --exclude '__pycache__' "$repo_dir/skills/mistine-data-query/" "$target/"
 chmod 755 "$target/scripts/mistine_data_query.py"
+orders_target="$(dirname "$target")/weixin-shop-order-query"
+mkdir -p "$orders_target"
+rsync -a --delete --exclude '__pycache__' "$repo_dir/skills/weixin-shop-order-query/" "$orders_target/"
+chmod 755 "$orders_target/scripts/order_query.py"
 python3 "$target/scripts/mistine_data_query.py" set-repo --path "$repo_dir" --target "$target" >/dev/null
 if [ "$mode" = "workbuddy" ]; then
   python3 "$target/scripts/mistine_data_query.py" auto-update on >/dev/null
 fi
 echo "Installed: $target"
+echo "Installed: $orders_target"
 if [ "$mode" = "workbuddy" ]; then
   echo "Automatic updates: enabled (checked before every use)"
 fi
